@@ -1,0 +1,10 @@
+#!/usr/bin/env perl
+# PODNAME: duckduckgo
+# ABSTRACT: Command line tool to use the DuckDuckGo API
+
+binmode STDOUT, ":utf8";
+
+use App::DuckDuckGo;
+App::DuckDuckGo->new_with_options->print_query_with_extra_argv;
+
+__END__
