@@ -49,9 +49,23 @@ sub print_query {
 	my ( $self ) = @_;
 	return if !$self->has_query;
 	my $api = $self->api;
-	my $result = $self->duckduckgo->$api($self->query);
-	my $function = 'print_'.$self->api;
-	$self->$function($result);
+	eval {
+		my $result = $self->duckduckgo->$api($self->query);
+		my $function = 'print_'.$self->api;
+		$self->$function($result);
+	};
+	if ($@) {
+		print ' _____ ____  ____   ___  ____'."\n";
+		print '| ____|  _ \\|  _ \\ / _ \\|  _ \\'."\n";
+		print '|  _| | |_) | |_) | | | | |_) |'."\n";
+		print '| |___|  _ <|  _ <| |_| |  _ <'."\n";
+		print '|_____|_| \\_\\_| \\_\\\\___/|_| \\_\\'."\n";
+		print "\nAn error occured, we cant execute your process:\n\n";
+		print " ".$@."\n";
+		print "This is regulary not your fault, please try again later.\n";
+		print "If the problem stay, please report on https://github.com/Getty/p5-app-duckduckgo/issues\n\n";
+		exit 1;
+	}
 }
 
 sub print_zeroclickinfo {
