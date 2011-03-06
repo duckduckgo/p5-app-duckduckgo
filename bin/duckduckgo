@@ -8,3 +8,20 @@ use App::DuckDuckGo;
 App::DuckDuckGo->new_with_options->print_query_with_extra_argv;
 
 __END__
+
+=head1 SYNPOSIS
+
+  duckduckgo facebook
+  
+  duckduckgo --batch facebook
+  
+  duckduckgo duck duck go
+  
+=head2 DESCRIPTION
+
+This application queries the L<DuckDuckGo API|http://www.duckduckgo.com/api.html> and displays the result in a nice human-readable way or in a batch mode which could be used by a shellscript to automatically work with the DuckDuckGo API results.
+
+The B<--batch> parameter tells the application to display the data in a more machine readable form.
+
+The startup of the application takes some milliseconds longer cause of the compile overhead by L<Moose>. If you want to use a huge bunch of queries, you should consider L<Learning Perl|http://learn.perl.org/>, best directly the modern way with the free L<Modern Perl Book|http://www.onyxneon.com/books/modern_perl/index.html> available as L<PDF|http://www.onyxneon.com/books/modern_perl/modern_perl_letter.pdf>.
+

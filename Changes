@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+	- Added some documentation
 
 0.002     2011-03-06 22:54:00 Europe/Berlin
 	- Added error handling message

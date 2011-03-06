@@ -175,4 +175,16 @@ sub zeroclickinfo_batch_icon_lines {
 
 1;
 
+=head1 SYNPOSIS
+
+  use App::DuckDuckGo;
+  App::DuckDuckGo->new_with_options->print_query_with_extra_argv;
+  
+=head2 DESCRIPTION
+
+This is the class which is used by duckduckgo script to do the work. Please read L<duckduckgo> to get the documentation for the command line tool.
+
+
+
+
 
