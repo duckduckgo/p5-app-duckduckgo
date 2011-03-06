@@ -60,7 +60,7 @@ sub print_query {
 		print '|  _| | |_) | |_) | | | | |_) |'."\n";
 		print '| |___|  _ <|  _ <| |_| |  _ <'."\n";
 		print '|_____|_| \\_\\_| \\_\\\\___/|_| \\_\\'."\n";
-		print "\nAn error occured, we cant execute your process:\n\n";
+		print "\nAn error occured, we cant execute your query:\n\n";
 		print " ".$@."\n";
 		print "This is regulary not your fault, please try again later.\n";
 		print "If the problem stay, please report on https://github.com/Getty/p5-app-duckduckgo/issues\n\n";
