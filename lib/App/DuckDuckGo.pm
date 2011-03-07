@@ -93,7 +93,7 @@ sub print_zeroclickinfo {
 		$abstract .= "\nSource: ".$zci->abstract_url->as_string if $definition and $zci->has_abstract_url;
 		print "Description: ".$abstract."\n\n" if $abstract;
 		
-		if (@{$zci->related_topics}) {
+		if ($zci->related_topics) {
 			print "Related Topics:\n";
 			for (@{$zci->related_topics}) {
 				if ($_->has_text or $_->has_first_url) {
@@ -106,7 +106,7 @@ sub print_zeroclickinfo {
 			print "\n";
 		}
 		
-		if (@{$zci->results}) {
+		if ($zci->results) {
 			print "Other Results:\n";
 			for (@{$zci->results}) {
 				if ($_->has_text or $_->has_first_url) {
@@ -137,11 +137,11 @@ sub zeroclickinfo_batch_lines {
 	push @lines, "DefinitionSource: ".$zci->definition_source if $zci->has_definition_source;
 	push @lines, "DefinitionURL: ".$zci->definition_url->as_string if $zci->has_definition_url;
 	push @lines, "Type: ".$zci->type if $zci->has_type;
-	if (@{$zci->related_topics}) {
+	if ($zci->related_topics) {
 		push @lines, "RelatedTopics:";
 		push @lines, $self->zeroclickinfo_batch_links_lines(@{$zci->related_topics});
 	}
-	if (@{$zci->results}) {
+	if ($zci->results) {
 		push @lines, "Results:";
 		push @lines, $self->zeroclickinfo_batch_links_lines(@{$zci->results});
 	}
