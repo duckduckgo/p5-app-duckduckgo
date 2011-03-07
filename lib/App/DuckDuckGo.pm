@@ -9,11 +9,13 @@ with qw(
 	MooseX::Getopt
 );
 
+our $VERSION ||= '0.0development';
+
 has duckduckgo => (
 	metaclass => 'NoGetopt',
 	isa => 'WWW::DuckDuckGo',
 	is => 'ro',
-	default => sub { WWW::DuckDuckGo->new },
+	default => sub { WWW::DuckDuckGo->new( _http_agent_description => __PACKAGE__.'/'.$VERSION ) },
 );
 
 has query => (
