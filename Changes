@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.004     2011-03-07 08:17:56 Europe/Berlin
 	- Fixed bug of non existing arrays
 
 0.003     2011-03-07 04:30:24 Europe/Berlin
