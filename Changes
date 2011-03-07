@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.005     2011-03-07 18:32:56 Europe/Berlin
 	- Fixed stupid use
 	- Added own agent name
 
