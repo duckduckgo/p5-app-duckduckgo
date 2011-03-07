@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.003     2011-03-07 04:30:24 Europe/Berlin
 	- Added some documentation
 
 0.002     2011-03-06 22:54:00 Europe/Berlin
