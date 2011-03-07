@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+	- Fixed stupid use
 	- Added own agent name
 
 0.004     2011-03-07 08:17:56 Europe/Berlin

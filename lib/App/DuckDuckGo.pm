@@ -3,7 +3,6 @@ package App::DuckDuckGo;
 
 use Moose;
 use WWW::DuckDuckGo;
-use Text::ASCIITable;
 
 with qw(
 	MooseX::Getopt
