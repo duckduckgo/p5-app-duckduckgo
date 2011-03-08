@@ -23,5 +23,7 @@ This application queries the L<DuckDuckGo API|http://www.duckduckgo.com/api.html
 
 The B<--batch> parameter tells the application to display the data in a more machine readable form.
 
+The B<--forcesecure> parameter tells the application to not fall back to http if the https request failed.
+
 The startup of the application takes some milliseconds longer cause of the compile overhead by L<Moose>. If you want to use a huge bunch of queries, you should consider L<Learning Perl|http://learn.perl.org/>, best directly the modern way with the free L<Modern Perl Book|http://www.onyxneon.com/books/modern_perl/index.html> available as L<PDF|http://www.onyxneon.com/books/modern_perl/modern_perl_letter.pdf>. Then you can use the distribution L<WWW::DuckDuckGo> directly todo faster a bigger amount of queries
 

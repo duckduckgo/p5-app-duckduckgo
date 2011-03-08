@@ -14,7 +14,10 @@ has duckduckgo => (
 	metaclass => 'NoGetopt',
 	isa => 'WWW::DuckDuckGo',
 	is => 'ro',
-	default => sub { WWW::DuckDuckGo->new( _http_agent_description => __PACKAGE__.'/'.$VERSION ) },
+	default => sub {
+		my $self = shift;
+		WWW::DuckDuckGo->new( http_agent_name => __PACKAGE__.'/'.$VERSION, forcesecure => $self->forcesecure );
+	},
 );
 
 has query => (
@@ -24,6 +27,12 @@ has query => (
 );
 
 has batch => (
+	isa => 'Bool',
+	is => 'rw',
+	default => sub { 0 },
+);
+
+has forcesecure => (
 	isa => 'Bool',
 	is => 'rw',
 	default => sub { 0 },
@@ -76,32 +85,56 @@ sub print_zeroclickinfo {
 	} else {
 	
 		print "\n";
-	
+
+		if ($zci->has_answer) {
+			print "And the answer is:\n\n";
+			print $zci->answer."\n\n";
+			print "This answer was brought to you by '".$zci->answer_type."'. Fasten seat belts.\n\n";
+		}
+		
 		my $heading;
 		$heading = $zci->heading if $zci->has_heading;
 		$heading .= " (".$zci->type_long.")" if $heading and $zci->has_type;
 		print $heading."\n\n" if $heading;
 	
-		my $definition;
-		$definition = $zci->definition if $zci->has_definition;
-		$definition .= " (".$zci->definition_source.")" if $definition and $zci->has_definition_source;
-		$definition .= "\nSource: ".$zci->definition_url->as_string if $definition and $zci->has_definition_url;
-		print $definition."\n\n" if $definition;
+		if ($zci->has_definition) {
+			my $definition = $zci->definition if $zci->has_definition;
+			$definition .= " (".$zci->definition_source.")" if $zci->has_definition_source;
+			$definition .= "\nSource: ".$zci->definition_url->as_string if $zci->has_definition_url;
+			print $definition."\n\n";
+		}
 
-		my $abstract;
-		$abstract = $zci->abstract_text if $zci->has_abstract_text;
-		$abstract .= " (".$zci->abstract_source.")" if $abstract and $zci->has_abstract_source;
-		$abstract .= "\nSource: ".$zci->abstract_url->as_string if $definition and $zci->has_abstract_url;
-		print "Description: ".$abstract."\n\n" if $abstract;
+		if ($zci->has_abstract_text) {
+			my $abstract = $zci->abstract_text;
+			$abstract .= " (".$zci->abstract_source.")" if $zci->has_abstract_source;
+			$abstract .= "\nSource: ".$zci->abstract_url->as_string if $zci->has_abstract_url;
+			print "Description: ".$abstract."\n\n";
+		}
 		
-		if ($zci->related_topics) {
+		if ($zci->has_default_related_topics) {
 			print "Related Topics:\n";
-			for (@{$zci->related_topics}) {
+			for (@{$zci->default_related_topics}) {
 				if ($_->has_text or $_->has_first_url) {
 					print " - ";
 					print $_->text."\n" if $_->has_text;
 					print "   " if $_->has_text and $_->has_first_url;
 					print $_->first_url->as_string."\n" if $_->has_first_url;
+				}
+			}
+			print "\n";
+		}
+
+		if (!$zci->has_default_related_topics and %{$zci->related_topics_sections}) {
+			print "Related Topics Groups:\n";
+			for (keys %{$zci->related_topics_sections}) {
+				print "  Related Topics Groupname: ".$_."\n";
+				for (@{$zci->related_topics_sections->{$_}}) {
+					if ($_->has_text or $_->has_first_url) {
+						print "   - ";
+						print $_->text."\n" if $_->has_text;
+						print "     " if $_->has_text and $_->has_first_url;
+						print $_->first_url->as_string."\n" if $_->has_first_url;
+					}
 				}
 			}
 			print "\n";
@@ -138,9 +171,12 @@ sub zeroclickinfo_batch_lines {
 	push @lines, "DefinitionSource: ".$zci->definition_source if $zci->has_definition_source;
 	push @lines, "DefinitionURL: ".$zci->definition_url->as_string if $zci->has_definition_url;
 	push @lines, "Type: ".$zci->type if $zci->has_type;
-	if ($zci->related_topics) {
-		push @lines, "RelatedTopics:";
-		push @lines, $self->zeroclickinfo_batch_links_lines(@{$zci->related_topics});
+	if (%{$zci->related_topics_sections}) {
+		push @lines, "RelatedTopicsSections:";
+		for (keys %{$zci->related_topics_sections}) {
+			push @lines, "  RelatedTopicsSection: ".$_;
+			push @lines, $self->zeroclickinfo_batch_links_lines(@{$zci->related_topics_sections->{$_}});
+		}
 	}
 	if ($zci->results) {
 		push @lines, "Results:";
@@ -153,12 +189,12 @@ sub zeroclickinfo_batch_links_lines {
 	my ( $self, @links ) = @_;
 	my @lines;
 	for (@links) {
-		push @lines, "  -- " if @lines;
-		push @lines, "  Result: ".$_->result if $_->has_result;
-		push @lines, "  FirstURL: ".$_->first_url->as_string if $_->has_first_url;
-		push @lines, "  Text: ".$_->text if $_->has_text;
+		push @lines, "    -- " if @lines;
+		push @lines, "    Result: ".$_->result if $_->has_result;
+		push @lines, "    FirstURL: ".$_->first_url->as_string if $_->has_first_url;
+		push @lines, "    Text: ".$_->text if $_->has_text;
 		if ($_->has_icon) {
-			push @lines, "  Icon:";
+			push @lines, "    Icon:";
 			push @lines, $self->zeroclickinfo_batch_icon_lines($_->icon);
 		}
 	}
@@ -168,9 +204,9 @@ sub zeroclickinfo_batch_links_lines {
 sub zeroclickinfo_batch_icon_lines {
 	my ( $self, $icon ) = @_;
 	my @lines;
-	push @lines, "    URL: ".$icon->url->as_string if $icon->has_url;
-	push @lines, "    Width: ".$icon->width if $icon->has_url;
-	push @lines, "    Height: ".$icon->height if $icon->has_url;
+	push @lines, "      URL: ".$icon->url->as_string if $icon->has_url;
+	push @lines, "      Width: ".$icon->width if $icon->has_width;
+	push @lines, "      Height: ".$icon->height if $icon->has_height;
 	return @lines;
 }
 
