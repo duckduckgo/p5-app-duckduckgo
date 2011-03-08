@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.006     2011-03-09 00:43:23 Europe/Berlin
 	- Added --forcesecure flag for forcing https
 	- Added answer handling
 	- Using newest WWW::DuckDuckGo
