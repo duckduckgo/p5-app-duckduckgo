@@ -86,6 +86,7 @@ sub print_zeroclickinfo {
 	
 		print "\n";
 
+        print "Redirected to: ".$zci->redirect."\n" if $zci->has_redirect;
 		if ($zci->has_answer) {
 			print "And the answer is:\n\n";
 			print $zci->answer."\n\n";
