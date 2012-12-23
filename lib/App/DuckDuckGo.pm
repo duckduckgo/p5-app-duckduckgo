@@ -53,6 +53,7 @@ has api => (
 );
 
 has deep_results => (
+	metaclass => 'NoGetopt',
 	isa => 'ArrayRef',
 	is => 'rw',
 	default => sub { [] }
@@ -190,7 +191,7 @@ sub print_deep_item {
 sub _interactive_deep_loop {
 	my ( $self, $query ) = @_;
 	my $item;
-	my @items = $self->duckduckgo->deep($query);
+	my @items = $self->duckduckgo->deep->cliinfo($query);
 	foreach $item (@items) {
 		$self->print_deep_item($item);
 		push @{$self->deep_results}, $item;

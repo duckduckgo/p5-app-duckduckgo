@@ -30,28 +30,28 @@ sub _cliinfo_uri {
 	return $uri;
 }
 
+sub _deep_uri {
+	my ( $self, $base_uri, $deep_uri ) = @_;
+	return URI->new($base_uri . $deep_uri);
+}
+
 sub cliinfo { shift->zeroclickinfo(@_); }
 
-sub deep {
-	my ( $self, $url_path ) = @_;
+has deep => (
+	is => 'ro',
+	lazy => 1,
+	builder => '_build_deep_accessor'
+);
 
-	my $res;
-	eval {
-		$res = $self->_http_agent->request(HTTP::Request->new(GET => $self->_duckduckgo_api_url_secure . $url_path));
-	};
-	if (!$self->forcesecure and ( $@ or !$res or !$res->is_success ) ) {
-		warn __PACKAGE__." HTTP request failed: ".$res->status_line if ($res and !$res->is_success);
-		warn __PACKAGE__." Can't access ".$self->_duckduckgo_api_url_secure." falling back to: ".$self->_duckduckgo_api_url;
-		$res = $self->_http_agent->request(HTTP::Request->new(GET => $self->_duckduckgo_api_url_secure . $url_path));
-	}
-
-	my @raw = @{decode_json($res->content)};
-	my $json;
-	my @return = ();
-	foreach $json (@raw) {
-		push(@return, $self->_deep_class->by($json));
-	}
-	@return;
+sub _build_deep_accessor {
+	my $self = shift;
+	__PACKAGE__->new( http_agent_name => $self->http_agent_name,
+			  forcesecure => $self->forcesecure,
+			  _zeroclickinfo_class => $self->_deep_class,
+			  _duckduckgo_api_url => $self->_duckduckgo_api_url,
+			  _duckduckgo_api_url_secure => $self->_duckduckgo_api_url_secure,
+			  _uri_builder => '_deep_uri'
+			);
 }
 
 

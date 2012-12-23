@@ -4,20 +4,26 @@ package App::DuckDuckGo::Deep;
 use Moo;
 use URI;
 
+use Data::Dumper;
+
 
 sub by {
-	my ( $class, $deep_result ) = @_;
-	my ( %params, $result_key, $params_key );
+	my ( $class, $raw_results ) = @_;
+	my ( %params, $result_key, $params_key, $raw_result, @results );
 	my %map = (
 		   'a' => 'abstract',
 		   't' => 'title',
 		   'u' => 'url',
 		   'n' => 'next'
 		  );
-	while (($result_key, $params_key) = each %map) {
-		$params{$params_key} = $deep_result->{$result_key} if $deep_result->{$result_key};
+
+	foreach $raw_result (@{$raw_results}) {
+		while (($result_key, $params_key) = each %map) {
+			$params{$params_key} = $raw_result->{$result_key} if $raw_result->{$result_key};
+		}
+		push @results, __PACKAGE__->new(%params);
 	}
-	__PACKAGE__->new(%params);
+	return @results;
 }
 
 
