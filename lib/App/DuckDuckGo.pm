@@ -3,6 +3,7 @@ package App::DuckDuckGo;
 
 use Moose;
 use WWW::DuckDuckGo;
+use App::DuckDuckGo::CliDuckDuckGo;
 
 with qw(
 	MooseX::Getopt
@@ -12,11 +13,11 @@ our $VERSION ||= '0.0development';
 
 has duckduckgo => (
 	metaclass => 'NoGetopt',
-	isa => 'WWW::DuckDuckGo',
+	isa => 'App::DuckDuckGo::CliDuckDuckGo',
 	is => 'ro',
 	default => sub {
 		my $self = shift;
-		WWW::DuckDuckGo->new( http_agent_name => __PACKAGE__.'/'.$VERSION, forcesecure => $self->forcesecure );
+		App::DuckDuckGo::CliDuckDuckGo->new( http_agent_name => __PACKAGE__.'/'.$VERSION, forcesecure => $self->forcesecure );
 	},
 );
 
@@ -41,7 +42,13 @@ has forcesecure => (
 has api => (
 	isa => 'Str',
 	is => 'ro',
-	default => sub { 'zeroclickinfo' },
+	default => sub { 'cliinfo' },
+);
+
+has deep_results => (
+	isa => 'ArrayRef',
+	is => 'rw',
+	default => sub { [] }
 );
 
 sub set_query_by_extra_argv {
@@ -83,21 +90,21 @@ sub print_zeroclickinfo {
 	if ($self->batch) {
 		print join("\n",$self->zeroclickinfo_batch_lines($zci))."\n";
 	} else {
-	
+
 		print "\n";
 
-        print "Redirected to: ".$zci->redirect."\n" if $zci->has_redirect;
+		print "Redirected to: ".$zci->redirect."\n" if $zci->has_redirect;
 		if ($zci->has_answer) {
 			print "And the answer is:\n\n";
 			print $zci->answer."\n\n";
 			print "This answer was brought to you by '".$zci->answer_type."'. Fasten seat belts.\n\n";
 		}
-		
+
 		my $heading;
 		$heading = $zci->heading if $zci->has_heading;
 		$heading .= " (".$zci->type_long.")" if $heading and $zci->has_type;
 		print $heading."\n\n" if $heading;
-	
+
 		if ($zci->has_definition) {
 			my $definition = $zci->definition if $zci->has_definition;
 			$definition .= " (".$zci->definition_source.")" if $zci->has_definition_source;
@@ -111,7 +118,7 @@ sub print_zeroclickinfo {
 			$abstract .= "\nSource: ".$zci->abstract_url->as_string if $zci->has_abstract_url;
 			print "Description: ".$abstract."\n\n";
 		}
-		
+
 		if ($zci->has_default_related_topics) {
 			print "Related Topics:\n";
 			for (@{$zci->default_related_topics}) {
@@ -140,7 +147,7 @@ sub print_zeroclickinfo {
 			}
 			print "\n";
 		}
-		
+
 		if ($zci->results) {
 			print "Other Results:\n";
 			for (@{$zci->results}) {
@@ -153,8 +160,45 @@ sub print_zeroclickinfo {
 			}
 			print "\n";
 		}
-		
+
 	}
+}
+
+sub print_deep_item {
+	my ( $self, $item ) = @_;
+	my $prefix = '[' . ($#{$self->deep_results} + 1) . '] ';
+	my $indent = ' ' x length($prefix);
+	my $had_first_line = 0;
+
+	my $field;
+	foreach $field qw(title abstract url) {
+		my $has_field = 'has_' . $field;
+		next unless ( $item->$has_field );
+		print $had_first_line ? $indent : $prefix;
+		$had_first_line = 1;
+		print $item->$field . "\n";
+	}
+}
+
+sub _interactive_deep_loop {
+	my ( $self, $query ) = @_;
+	my $item;
+	my @items = $self->duckduckgo->deep($query);
+	foreach $item (@items) {
+		$self->print_deep_item($item);
+		push @{$self->deep_results}, $item;
+	}
+	if ($items[-1]->has_next) {
+		print 'Next:' . $items[-1]->next;
+	}
+	# Here comes input, input parsing, possible recursion for the next page of results, opening of browser windows, and much gnashing of teeth..
+}
+
+sub print_cliinfo {
+	my ( $self, $info ) = @_;
+	print "Zero Click Info:\n";
+	$self->print_zeroclickinfo($info);
+	$self->_interactive_deep_loop($info->deep_query) if ( -t STDIN and -t STDOUT and $info->has_deep_query );
 }
 
 sub zeroclickinfo_batch_lines {
@@ -217,12 +261,7 @@ sub zeroclickinfo_batch_icon_lines {
 
   use App::DuckDuckGo;
   App::DuckDuckGo->new_with_options->print_query_with_extra_argv;
-  
+
 =head2 DESCRIPTION
 
 This is the class which is used by duckduckgo script to do the work. Please read L<duckduckgo> to get the documentation for the command line tool.
-
-
-
-
-
