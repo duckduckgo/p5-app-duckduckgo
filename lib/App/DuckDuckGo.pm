@@ -4,6 +4,7 @@ package App::DuckDuckGo;
 use Moose;
 use WWW::DuckDuckGo;
 use App::DuckDuckGo::CliDuckDuckGo;
+use App::DuckDuckGo::CliInfo;
 
 with qw(
 	MooseX::Getopt
@@ -17,7 +18,13 @@ has duckduckgo => (
 	is => 'ro',
 	default => sub {
 		my $self = shift;
-		App::DuckDuckGo::CliDuckDuckGo->new( http_agent_name => __PACKAGE__.'/'.$VERSION, forcesecure => $self->forcesecure );
+		App::DuckDuckGo::CliDuckDuckGo->new( http_agent_name => __PACKAGE__.'/'.$VERSION,
+						     forcesecure => $self->forcesecure,
+						     _zeroclickinfo_class => 'App::DuckDuckGo::CliInfo',
+						     _duckduckgo_api_url => 'http://duckduckgo.com/',
+						     _duckduckgo_api_url_secure => 'https://duckduckgo.com/',
+						     _uri_builder => '_cliinfo_uri'
+						   );
 	},
 );
 
