@@ -4,12 +4,10 @@ package App::DuckDuckGo::Deep;
 use Moo;
 use URI;
 
-use Data::Dumper;
-
 
 sub by {
-	my ( $class, $raw_results ) = @_;
-	my ( %params, $result_key, $params_key, $raw_result, @results );
+	my ( $class, $raw_result ) = @_;
+	my ( %params, $result_key, $params_key, $raw_resuls );
 	my %map = (
 		   'a' => 'abstract',
 		   't' => 'title',
@@ -17,13 +15,10 @@ sub by {
 		   'n' => 'next'
 		  );
 
-	foreach $raw_result (@{$raw_results}) {
-		while (($result_key, $params_key) = each %map) {
-			$params{$params_key} = $raw_result->{$result_key} if $raw_result->{$result_key};
-		}
-		push @results, __PACKAGE__->new(%params);
+	while (($result_key, $params_key) = each %map) {
+		$params{$params_key} = $raw_result->{$result_key} if $raw_result->{$result_key};
 	}
-	return @results;
+	__PACKAGE__->new(%params);
 }
 
 

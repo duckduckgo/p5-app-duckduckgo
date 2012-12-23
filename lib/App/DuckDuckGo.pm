@@ -3,7 +3,7 @@ package App::DuckDuckGo;
 
 use Moose;
 use WWW::DuckDuckGo;
-use App::DuckDuckGo::CliDuckDuckGo;
+use App::DuckDuckGo::InternalClient;
 use App::DuckDuckGo::CliInfo;
 
 with qw(
@@ -14,18 +14,32 @@ our $VERSION ||= '0.0development';
 
 has duckduckgo => (
 	metaclass => 'NoGetopt',
-	isa => 'App::DuckDuckGo::CliDuckDuckGo',
+	isa => 'WWW::DuckDuckGo',
 	is => 'ro',
 	default => sub {
 		my $self = shift;
-		App::DuckDuckGo::CliDuckDuckGo->new( http_agent_name => __PACKAGE__.'/'.$VERSION,
-						     forcesecure => $self->forcesecure,
-						     _zeroclickinfo_class => 'App::DuckDuckGo::CliInfo',
-						     _duckduckgo_api_url => 'http://duckduckgo.com/',
-						     _duckduckgo_api_url_secure => 'https://duckduckgo.com/',
-						     _uri_builder => '_cliinfo_uri'
-						   );
+		WWW::DuckDuckGo->new( http_agent_name => __PACKAGE__.'/'.$VERSION,
+				      forcesecure => $self->forcesecure,
+				      client_type => 'cli',
+				      _zeroclickinfo_class => 'App::DuckDuckGo::CliInfo',
+				      _duckduckgo_api_url => 'http://duckduckgo.com/',
+				      _duckduckgo_api_url_secure => 'https://duckduckgo.com/'
+				    );
 	},
+);
+
+has internal_client => (
+	metaclass => 'NoGetopt',
+	isa => 'App::DuckDuckGo::InternalClient',
+	is => 'ro',
+	default => sub {
+		my $self = shift;
+		App::DuckDuckGo::InternalClient->new( http_agent_name => __PACKAGE__.'/'.$VERSION,
+						      forcesecure => $self->forcesecure,
+						      _duckduckgo_api_url => 'http://duckduckgo.com/',
+						      _duckduckgo_api_url_secure => 'https://duckduckgo.com/'
+						    );
+	}
 );
 
 has query => (
@@ -49,7 +63,13 @@ has forcesecure => (
 has api => (
 	isa => 'Str',
 	is => 'ro',
-	default => sub { 'cliinfo' },
+	default => sub { 'zeroclickinfo' },
+);
+
+has no_deep => (
+	isa => 'Bool',
+	is => 'rw',
+	default => sub { 0 }
 );
 
 has deep_results => (
@@ -169,10 +189,25 @@ sub print_zeroclickinfo {
 			print "\n";
 		}
 
+		$self->_interactive_deep_loop($zci->deep_query) if ( -t STDIN and -t STDOUT and not $self->no_deep and $zci->has_deep_query );
 	}
 }
 
-sub print_deep_item {
+sub _interactive_deep_loop {
+	my ( $self, $query ) = @_;
+	my $item;
+	my @items = $self->internal_client->deep($query);
+	foreach $item (@items) {
+		$self->_print_deep_item($item);
+		push @{$self->deep_results}, $item;
+	}
+	if ($items[-1]->has_next) {
+		print 'Next:' . $items[-1]->next;
+	}
+	# Here comes input, input parsing, possible recursion for the next page of results, opening of browser windows, and much gnashing of teeth..
+}
+
+sub _print_deep_item {
 	my ( $self, $item ) = @_;
 	my $prefix = '[' . ($#{$self->deep_results} + 1) . '] ';
 	my $indent = ' ' x length($prefix);
@@ -186,27 +221,6 @@ sub print_deep_item {
 		$had_first_line = 1;
 		print $item->$field . "\n";
 	}
-}
-
-sub _interactive_deep_loop {
-	my ( $self, $query ) = @_;
-	my $item;
-	my @items = $self->duckduckgo->deep->cliinfo($query);
-	foreach $item (@items) {
-		$self->print_deep_item($item);
-		push @{$self->deep_results}, $item;
-	}
-	if ($items[-1]->has_next) {
-		print 'Next:' . $items[-1]->next;
-	}
-	# Here comes input, input parsing, possible recursion for the next page of results, opening of browser windows, and much gnashing of teeth..
-}
-
-sub print_cliinfo {
-	my ( $self, $info ) = @_;
-	print "Zero Click Info:\n";
-	$self->print_zeroclickinfo($info);
-	$self->_interactive_deep_loop($info->deep_query) if ( -t STDIN and -t STDOUT and $info->has_deep_query );
 }
 
 sub zeroclickinfo_batch_lines {
