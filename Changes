@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.008     2013-04-18 00:33:50 Europe/Berlin
+
 0.007     2012-10-20 11:42:35 America/Denver
 
 0.006     2011-03-09 00:43:23 Europe/Berlin
